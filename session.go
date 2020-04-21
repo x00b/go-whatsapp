@@ -18,7 +18,7 @@ import (
 )
 
 //represents the WhatsAppWeb client version
-var waVersion = []int{0, 4, 2080}
+var waVersion = []int{2, 2013, 7}
 
 /*
 Session contains session individual information. To be able to resume the connection without scanning the qr code
@@ -107,7 +107,7 @@ func CheckCurrentServerVersion() ([]int, error) {
 	}
 
 	b64ClientId := base64.StdEncoding.EncodeToString(clientId)
-	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, b64ClientId, true}
+	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, b64ClientId, true}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
 		return nil, fmt.Errorf("error writing login: %s", err.Error())
@@ -141,11 +141,11 @@ func CheckCurrentServerVersion() ([]int, error) {
 SetClientName sets the long and short client names that are sent to WhatsApp when logging in and displayed in the
 WhatsApp Web device list. As the values are only sent when logging in, changing them after logging in is not possible.
 */
-func (wac *Conn) SetClientName(long, short string) error {
+func (wac *Conn) SetClientName(long, short, version string) error {
 	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
 		return fmt.Errorf("cannot change client name after logging in")
 	}
-	wac.longClientName, wac.shortClientName = long, short
+	wac.longClientName, wac.shortClientName, wac.clientVersion = long, short, version
 	return nil
 }
 
@@ -213,7 +213,7 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	}
 
 	session.ClientId = base64.StdEncoding.EncodeToString(clientId)
-	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
+	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, session.ClientId, true}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
 		return session, fmt.Errorf("error writing login: %v\n", err)
@@ -369,17 +369,17 @@ func (wac *Conn) Restore() error {
 	wac.listener.Unlock()
 
 	//admin init
-	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, wac.session.ClientId, true}
+	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientId, true}
 	initChan, err := wac.writeJson(init)
 	if err != nil {
-		return fmt.Errorf("error writing admin init: %v\n", err)
+		return fmt.Errorf("Error writing admin init: %v", err)
 	}
 
 	//admin login with takeover
 	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, "takeover"}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
-		return fmt.Errorf("error writing admin login: %v\n", err)
+		return fmt.Errorf("Error writing admin login: %v", err)
 	}
 
 	select {

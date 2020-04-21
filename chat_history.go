@@ -1,13 +1,15 @@
 package whatsapp
 
 import (
-	"github.com/Rhymen/go-whatsapp/binary"
-	"github.com/Rhymen/go-whatsapp/binary/proto"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/Rhymen/go-whatsapp/binary"
+	"github.com/Rhymen/go-whatsapp/binary/proto"
 )
 
+// MessageOffsetInfo :
 type MessageOffsetInfo struct {
 	FirstMessageId    string
 	FirstMessageOwner bool

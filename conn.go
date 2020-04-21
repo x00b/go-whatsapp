@@ -90,6 +90,7 @@ type Conn struct {
 
 	longClientName  string
 	shortClientName string
+	clientVersion   string
 
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
@@ -109,7 +110,7 @@ type listenerWrapper struct {
 }
 
 /*
-Creates a new connection with a given timeout. The websocket connection to the WhatsAppWeb servers get´s established.
+NewConn creates a new connection with a given timeout. The websocket connection to the WhatsAppWeb servers get´s established.
 The goroutine for handling incoming messages is started
 */
 func NewConn(timeout time.Duration) (*Conn, error) {
@@ -119,8 +120,9 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 		msgTimeout: timeout,
 		Store:      newStore(),
 
-		longClientName:  "github.com/rhymen/go-whatsapp",
+		longClientName:  "github.com/x00b/go-whatsapp",
 		shortClientName: "go-whatsapp",
+		clientVersion:   "10.15.14",
 	}
 	return wac, wac.connect()
 }
@@ -133,8 +135,9 @@ func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL
 		msgTimeout: timeout,
 		Store:      newStore(),
 
-		longClientName:  "github.com/rhymen/go-whatsapp",
+		longClientName:  "github.com/x00b/go-whatsapp",
 		shortClientName: "go-whatsapp",
+		clientVersion:   "10.15.14",
 		Proxy:           proxy,
 	}
 	return wac, wac.connect()
@@ -153,8 +156,8 @@ func (wac *Conn) connect() (err error) {
 	}()
 
 	dialer := &websocket.Dialer{
-		ReadBufferSize:   25 * 1024 * 1024,
-		WriteBufferSize:  10 * 1024 * 1024,
+		ReadBufferSize:   0,
+		WriteBufferSize:  0,
 		HandshakeTimeout: wac.msgTimeout,
 		Proxy:            wac.Proxy,
 	}
